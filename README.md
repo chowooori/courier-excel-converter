@@ -47,6 +47,15 @@ python -m streamlit run app.py
 python -m pytest -q
 ```
 
+## 웹 배포
+
+이 저장소는 Streamlit Community Cloud에서 다음 값으로 배포할 수 있습니다.
+
+- Repository: `chowooori/courier-excel-converter`
+- Branch: `main`
+- Main file: `app.py`
+- 접근 범위: Private
+
 ## 기술
 
 - Python
