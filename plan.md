@@ -327,10 +327,11 @@ courier-excel-converter/
 
 ## 14. 인터넷 웹앱 배포
 
-상태: **사용자 합의 — 비공개 Streamlit Community Cloud 앱**
+상태: **배포 완료 — 비공개 Streamlit Community Cloud 앱**
 
 - 비공개 GitHub 저장소의 `main` 브랜치와 `app.py`를 연결
 - 허용된 로그인 사용자만 웹앱에 접근하도록 비공개 설정
 - 코드가 GitHub에 업데이트되면 배포 앱에도 반영
 - 실제 주문 Excel은 저장소에 포함하지 않음
 - 사용자가 올린 파일은 변환 중 메모리에서만 처리하고 별도 저장하지 않음
+- 배포 주소: `https://courier-excel-converter.streamlit.app/`
