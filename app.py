@@ -1,17 +1,26 @@
 """택배 양식 생성과 운송장번호 연결을 한 흐름으로 제공한다."""
 
+import importlib
 from datetime import datetime
 
 import streamlit as st
 
-from converter import (
-    SourceFormatError,
-    convert_to_courier_form,
-    courier_form_to_xlsx_bytes,
-    read_source_excel,
-)
-from tracking_matcher import match_tracking_numbers, sales_ledger_to_xlsx_bytes
-from validator import validate
+import converter
+import tracking_matcher
+import validator
+
+# Streamlit Cloud의 코드 자동 업데이트 후 이전 모듈이 메모리에 남지 않게 한다.
+converter = importlib.reload(converter)
+validator = importlib.reload(validator)
+tracking_matcher = importlib.reload(tracking_matcher)
+
+SourceFormatError = converter.SourceFormatError
+convert_to_courier_form = converter.convert_to_courier_form
+courier_form_to_xlsx_bytes = converter.courier_form_to_xlsx_bytes
+read_source_excel = converter.read_source_excel
+match_tracking_numbers = tracking_matcher.match_tracking_numbers
+sales_ledger_to_xlsx_bytes = tracking_matcher.sales_ledger_to_xlsx_bytes
+validate = validator.validate
 
 st.set_page_config(page_title="출고 엑셀 변환·운송장 연결", layout="wide")
 
