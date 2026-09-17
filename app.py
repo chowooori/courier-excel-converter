@@ -37,6 +37,17 @@ def _qty_display(value: float) -> str:
 
 def render_courier_form_step() -> None:
     st.header("1단계: 주문 → 택배 양식")
+    with st.expander("택배사 필수 입력 규칙", expanded=True):
+        st.markdown(
+            """
+- **A 받는분성명**: 2글자 이상 (1글자는 자동으로 점 `.` 추가)
+- **B 내품명**: 주문선택사항을 정확히 기재
+- **C 내품수량**: 숫자 형식
+- **D 받는분전화번호**: 하이픈이 포함된 연락처 또는 안심번호
+- **E 받는분주소(전체, 분할)**: 전체 도로명/지번 주소
+- **F 받는분우편번호**: 5자리 우편번호
+"""
+        )
     uploaded = st.file_uploader(
         "쇼핑몰 주문 원본 엑셀을 올려 주세요",
         type=["xlsx", "xls"],
@@ -63,7 +74,7 @@ def render_courier_form_step() -> None:
     m3.metric("원본 수량 합계", _qty_display(report.source_qty_sum))
     m4.metric("변환 수량 합계", _qty_display(report.converted_qty_sum))
 
-    c1, c2 = st.columns(2)
+    c1, c2, c3 = st.columns(3)
     with c1:
         (st.success if report.count_ok else st.error)(
             f"건수 {_status_label(report.count_ok)}"
@@ -72,19 +83,37 @@ def render_courier_form_step() -> None:
         (st.success if report.qty_ok else st.error)(
             f"수량 {_status_label(report.qty_ok)}"
         )
-
-    empty_total = (
-        report.empty_name_count
-        + report.empty_phone_count
-        + report.empty_address_count
-    )
-    if empty_total:
-        st.warning(
-            "비어 있는 값이 있습니다. "
-            f"성명 {report.empty_name_count}건, "
-            f"전화 {report.empty_phone_count}건, "
-            f"주소 {report.empty_address_count}건."
+    with c3:
+        (st.success if report.rules_ok else st.error)(
+            f"필수 규칙 {_status_label(report.rules_ok)}"
         )
+
+    if report.adjusted_name_count:
+        st.info(
+            f"1글자 성명 {report.adjusted_name_count}건에 점(.)을 자동으로 추가했습니다."
+        )
+
+    rule_issues = []
+    if report.empty_name_count:
+        rule_issues.append(f"받는분성명 빈 값 {report.empty_name_count}건")
+    if report.empty_product_count:
+        rule_issues.append(f"내품명 빈 값 {report.empty_product_count}건")
+    if report.invalid_quantity_count:
+        rule_issues.append(
+            f"내품수량 숫자 형식 오류 {report.invalid_quantity_count}건"
+        )
+    if report.invalid_phone_count:
+        rule_issues.append(
+            f"전화번호 형식 오류 {report.invalid_phone_count}건"
+        )
+    if report.empty_address_count:
+        rule_issues.append(f"받는분주소 빈 값 {report.empty_address_count}건")
+    if report.invalid_zipcode_count:
+        rule_issues.append(
+            f"우편번호 5자리 형식 오류 {report.invalid_zipcode_count}건"
+        )
+    if rule_issues:
+        st.error("필수 입력 오류\n\n- " + "\n- ".join(rule_issues))
 
     tab_source, tab_converted, tab_compare = st.tabs(
         ["원본 데이터", "변환된 택배 양식", "좌우 비교"]
@@ -119,7 +148,9 @@ def render_courier_form_step() -> None:
             type="primary",
         )
     else:
-        st.error("건수 또는 수량이 원본과 다릅니다. 다운로드할 수 없습니다.")
+        st.error(
+            "건수·수량 또는 택배사 필수 입력 규칙이 맞지 않아 다운로드할 수 없습니다."
+        )
 
 
 def render_tracking_step() -> None:

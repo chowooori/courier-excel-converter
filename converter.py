@@ -1,4 +1,4 @@
-"""쇼핑몰 주문 엑셀을 택배 입고용 양식으로 변환한다. 원본 값은 복사만 한다."""
+"""쇼핑몰 주문 엑셀을 택배 입고용 양식으로 변환한다."""
 
 from __future__ import annotations
 
@@ -62,6 +62,12 @@ def missing_source_columns(source_df: pd.DataFrame) -> list[str]:
     return [col for col in REQUIRED_SOURCE_COLUMNS if col not in source_df.columns]
 
 
+def format_recipient_name(value: object) -> str:
+    """한 글자 성명은 택배사 2글자 규칙에 맞춰 점을 붙인다."""
+    text = _as_text(value)
+    return f"{text}." if len(text) == 1 else text
+
+
 def format_zipcode(value: object) -> str:
     """변환 파일에서만 우편번호를 5자리 문자로 맞춘다. 원본 표는 그대로 둔다."""
     if value is None or (isinstance(value, float) and pd.isna(value)):
@@ -113,7 +119,7 @@ def convert_to_courier_form(source_df: pd.DataFrame) -> pd.DataFrame:
 
     converted = pd.DataFrame(
         {
-            "받는분성명": source_df["수령자명"].map(_as_text),
+            "받는분성명": source_df["수령자명"].map(format_recipient_name),
             "내품명": source_df["주문선택사항"].map(_as_text),
             "내품수량": source_df["주문수량"].map(_as_quantity),
             "받는분전화번호": source_df["수령자휴대폰번호"].map(_as_text),
