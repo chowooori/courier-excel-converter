@@ -1,6 +1,6 @@
 # 출고 엑셀 변환·운송장 연결
 
-쇼핑몰 주문부터 택배사 운송장번호가 입력된 EMP 매출장부까지 연결하는 로컬 Streamlit 앱입니다.
+쇼핑몰 주문부터 택배사 운송장번호가 입력된 EMP 매출장부까지 연결하는 Vercel 웹앱입니다.
 
 ## 제공 기능
 
@@ -24,44 +24,62 @@
 ## 안전 원칙
 
 - 원본 파일을 수정하거나 덮어쓰지 않습니다.
-- 업로드 파일은 메모리에서만 처리합니다.
+- 업로드 파일은 브라우저 메모리에서만 처리하고 서버로 보내지 않습니다.
 - 결과는 새 파일로만 다운로드합니다.
 - 실제 Excel 주문 파일은 `.gitignore`로 GitHub 업로드가 차단됩니다.
+- Google 로그인과 허용 이메일 목록을 통과한 사용자만 앱을 엽니다.
 
-## Windows에서 실행
+## 로컬 실행
 
-1. Python 3.11 이상을 설치합니다.
-2. `웹앱실행.bat`를 더블클릭합니다.
-3. 브라우저에서 앱이 열리면 원하는 작업 단계를 선택합니다.
-
-직접 실행하려면:
+1. Node.js 20 이상을 설치합니다.
+2. `.env.example`을 복사해 `.env.local`을 만들고 값을 채웁니다.
+3. 아래를 실행합니다.
 
 ```powershell
-python -m pip install -r requirements.txt
-python -m streamlit run app.py
+npm install
+npm run dev
 ```
+
+브라우저에서 `http://localhost:3000`을 엽니다.
+
+## Google 로그인 설정
+
+Vercel 환경변수와 `.env.local`에 아래를 넣습니다.
+
+- `AUTH_SECRET`: 임의의 긴 비밀값
+- `AUTH_GOOGLE_ID`: Google OAuth 클라이언트 ID
+- `AUTH_GOOGLE_SECRET`: Google OAuth 클라이언트 비밀값
+- `ALLOWED_EMAILS`: 허용할 이메일. 여러 개는 쉼표로 구분
+
+Google Cloud Console의 승인된 리디렉션 URI에는 아래를 등록합니다.
+
+- 로컬: `http://localhost:3000/api/auth/callback/google`
+- Vercel: `https://<배포주소>/api/auth/callback/google`
 
 ## 검사
 
 ```powershell
-python -m pytest -q
+npm test
+npm run lint
+npm run build
 ```
 
 ## 웹 배포
 
-비공개 Streamlit Community Cloud 앱:
+이 저장소는 Vercel Next.js 앱입니다. Streamlit의 `app.py`는 제거했습니다.
 
-- App: https://courier-excel-converter.streamlit.app/
 - Repository: `chowooori/courier-excel-converter`
-- Branch / Main file: `main` / `app.py`
-- 접근 범위: Private — 허용된 로그인 사용자만 접근
+- Branch: `main`
+- Framework: Next.js
+- 접근 범위: Google 로그인 + `ALLOWED_EMAILS`
+
+Vercel 프로젝트에 GitHub `main` 브랜치를 연결한 뒤, 위의 환경변수를 Production에 저장하고 다시 배포합니다.
 
 ## 기술
 
-- Python
-- Streamlit
-- pandas
-- openpyxl
-- xlrd
+- Next.js
+- TypeScript
+- Auth.js (Google)
+- SheetJS (`xlsx`)
 
 화면은 Airbnb-inspired 밝은 테마와 Plus Jakarta Sans 글꼴을 사용합니다.

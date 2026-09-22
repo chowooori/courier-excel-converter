@@ -327,14 +327,14 @@ courier-excel-converter/
 
 ## 14. 인터넷 웹앱 배포
 
-상태: **배포 완료 — 비공개 Streamlit Community Cloud 앱**
+상태: **Vercel Next.js 앱으로 전환**
 
-- 비공개 GitHub 저장소의 `main` 브랜치와 `app.py`를 연결
-- 허용된 로그인 사용자만 웹앱에 접근하도록 비공개 설정
-- 코드가 GitHub에 업데이트되면 배포 앱에도 반영
+- 비공개 GitHub 저장소의 `main` 브랜치를 Vercel에 연결
+- Google 로그인과 `ALLOWED_EMAILS`에 있는 계정만 앱을 열 수 있음
+- 코드가 GitHub에 업데이트되면 Vercel 배포에도 반영
 - 실제 주문 Excel은 저장소에 포함하지 않음
-- 사용자가 올린 파일은 변환 중 메모리에서만 처리하고 별도 저장하지 않음
-- 배포 주소: `https://courier-excel-converter.streamlit.app/`
+- 사용자가 올린 파일은 브라우저 메모리에서만 처리하고 서버로 전송하지 않음
+- 이전 Streamlit 주소: `https://courier-excel-converter.streamlit.app/`
 
 ---
 
@@ -355,3 +355,16 @@ courier-excel-converter/
 - 자동 보정된 1글자 성명 건수를 화면에 알림
 - 필수 입력 오류의 항목별 건수를 화면에 표시
 - 건수·수량 검증과 A~F 규칙을 모두 통과해야 다운로드 가능
+
+---
+
+## 16. Vercel 네이티브 재작성
+
+상태: **사용자 합의 — Streamlit을 제거하고 Next.js로 재작성**
+
+Vercel은 `app.py`를 Python 서버리스 함수로 해석하므로 Streamlit 앱을 그대로 올릴 수 없습니다. 그래서 같은 변환·검증 규칙을 Next.js + TypeScript로 옮겼습니다.
+
+- Excel 읽기/변환/다운로드는 브라우저에서만 수행
+- 1단계·2단계 화면, 검증 카드, 탭 비교, 다운로드 차단 규칙은 기존과 동일
+- Google 로그인 후 `ALLOWED_EMAILS`에 있는 계정만 사용
+- Python Streamlit 파일은 Git 이력 `d1347cd`에 남아 있음
