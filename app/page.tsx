@@ -14,7 +14,9 @@ export default function HomePage() {
           </p>
         </div>
       </header>
-      <ConverterApp />
+      <div className="workspace">
+        <ConverterApp />
+      </div>
     </div>
   );
 }

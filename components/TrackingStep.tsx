@@ -86,9 +86,6 @@ export function TrackingStep() {
           onFile={(file) => loadFiles(shipmentFile, file)}
         />
       </div>
-      {!shipmentFile || !salesFile ? (
-        <p className="muted">두 파일을 모두 올리면 운송장번호를 매칭하고 검증합니다.</p>
-      ) : null}
       {error ? <p className="alert error">{error}</p> : null}
 
       {shipment && sales && result && comparison && report ? (
@@ -177,18 +174,11 @@ export function TrackingStep() {
           {tab === "shipment" ? <DataTable table={shipment} /> : null}
           {tab === "sales" ? <DataTable table={sales} /> : null}
           {tab === "result" ? (
-            <>
-              <p className="muted">운송장번호가 E열에 추가된 결과입니다.</p>
-              <DataTable table={result} />
-            </>
-          ) : null}
-
-          <h2>엑셀 다운로드</h2>
-          {report.ok ? (
-            <button
-              className="primary-button"
-              type="button"
-              onClick={() =>
+            <DataTable
+              table={result}
+              actionLabel="운송장번호가 입력된 매출장부 다운로드"
+              actionDisabled={!report.ok}
+              onAction={() =>
                 downloadBlob(
                   tableToXlsxBlob(
                     result,
@@ -199,14 +189,13 @@ export function TrackingStep() {
                   timestampedName("EMP_매출장부_운송장완료"),
                 )
               }
-            >
-              운송장번호가 입력된 매출장부 다운로드
-            </button>
-          ) : (
+            />
+          ) : null}
+          {!report.ok ? (
             <p className="alert error">
               미매칭·충돌·빈 값이 해결되기 전에는 다운로드할 수 없습니다.
             </p>
-          )}
+          ) : null}
         </>
       ) : null}
     </section>

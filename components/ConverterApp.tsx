@@ -9,19 +9,17 @@ export function ConverterApp() {
 
   return (
     <main>
-      <div className="step-switch" role="radiogroup" aria-label="작업 선택">
+      <div className="step-switch">
         <button
           type="button"
-          role="radio"
-          aria-checked={step === "courier"}
+          className={step === "courier" ? "is-active" : undefined}
           onClick={() => setStep("courier")}
         >
           1단계: 주문 → 택배 양식
         </button>
         <button
           type="button"
-          role="radio"
-          aria-checked={step === "tracking"}
+          className={step === "tracking" ? "is-active" : undefined}
           onClick={() => setStep("tracking")}
         >
           2단계: 운송장 → EMP 매출장부

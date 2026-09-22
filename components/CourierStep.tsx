@@ -86,9 +86,6 @@ export function CourierStep() {
         file={file}
         onFile={handleFile}
       />
-      {!file ? (
-        <p className="muted">주문 원본 엑셀(.xlsx 또는 .xls)을 올리면 변환 결과가 나타납니다.</p>
-      ) : null}
       {error ? <p className="alert error">{error}</p> : null}
 
       {source && converted && report ? (
@@ -151,7 +148,19 @@ export function CourierStep() {
             </button>
           </div>
           {tab === "source" ? <DataTable table={source} /> : null}
-          {tab === "converted" ? <DataTable table={converted} /> : null}
+          {tab === "converted" ? (
+            <DataTable
+              table={converted}
+              actionLabel="택배 양식 엑셀 다운로드"
+              actionDisabled={!report.ok}
+              onAction={() =>
+                downloadBlob(
+                  tableToXlsxBlob(converted, "Sheet1", COURIER_TEXT_COLUMNS),
+                  timestampedName("택배양식"),
+                )
+              }
+            />
+          ) : null}
           {tab === "compare" ? (
             <div className="compare">
               <div>
@@ -170,26 +179,11 @@ export function CourierStep() {
               </div>
             </div>
           ) : null}
-
-          <h2>엑셀 다운로드</h2>
-          {report.ok ? (
-            <button
-              className="primary-button"
-              type="button"
-              onClick={() =>
-                downloadBlob(
-                  tableToXlsxBlob(converted, "Sheet1", COURIER_TEXT_COLUMNS),
-                  timestampedName("택배양식"),
-                )
-              }
-            >
-              택배 양식 엑셀 다운로드
-            </button>
-          ) : (
+          {!report.ok ? (
             <p className="alert error">
               건수·수량 또는 택배사 필수 입력 규칙이 맞지 않아 다운로드할 수 없습니다.
             </p>
-          )}
+          ) : null}
         </>
       ) : null}
     </section>

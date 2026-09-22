@@ -31,7 +31,7 @@ export function FileDrop({
       }}
     >
       <strong>{label}</strong>
-      <p className="muted">드래그 앤 드롭 또는 파일 선택을 사용할 수 있습니다.</p>
+      <p className="muted">드래그 앤 드롭 또는 파일 선택을 사용할 수 있습니다. .xlsx, .xls</p>
       <span className="file-button">엑셀 선택</span>
       <input
         id={inputId}
