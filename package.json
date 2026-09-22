@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "next": "^16.0.0",
-    "next-auth": "beta",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"

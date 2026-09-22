@@ -330,7 +330,7 @@ courier-excel-converter/
 상태: **Vercel Next.js 앱으로 전환**
 
 - 비공개 GitHub 저장소의 `main` 브랜치를 Vercel에 연결
-- Google 로그인과 `ALLOWED_EMAILS`에 있는 계정만 앱을 열 수 있음
+- 지금은 로그인 없이 변환 화면을 바로 엽니다. 엑셀은 브라우저에서만 처리됩니다
 - 코드가 GitHub에 업데이트되면 Vercel 배포에도 반영
 - 실제 주문 Excel은 저장소에 포함하지 않음
 - 사용자가 올린 파일은 브라우저 메모리에서만 처리하고 서버로 전송하지 않음
@@ -366,5 +366,5 @@ Vercel은 `app.py`를 Python 서버리스 함수로 해석하므로 Streamlit �
 
 - Excel 읽기/변환/다운로드는 브라우저에서만 수행
 - 1단계·2단계 화면, 검증 카드, 탭 비교, 다운로드 차단 규칙은 기존과 동일
-- Google 로그인 후 `ALLOWED_EMAILS`에 있는 계정만 사용
+- Google 로그인은 설정이 복잡해서 일단 제거했고, 로그인 없이 바로 사용
 - Python Streamlit 파일은 Git 이력 `d1347cd`에 남아 있음
