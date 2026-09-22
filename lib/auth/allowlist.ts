@@ -1,6 +1,9 @@
+export const DEFAULT_ALLOWED_EMAILS = "min4639@gmail.com";
+
 export function parseAllowedEmails(raw: string | undefined): Set<string> {
+  const source = raw?.trim() ? raw : DEFAULT_ALLOWED_EMAILS;
   return new Set(
-    (raw ?? "")
+    source
       .split(",")
       .map((email) => email.trim().toLowerCase())
       .filter(Boolean),

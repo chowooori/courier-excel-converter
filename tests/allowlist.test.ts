@@ -8,4 +8,9 @@ describe("email allowlist", () => {
     expect(isAllowedEmail("unknown@example.com", true, allowed)).toBe(false);
     expect(isAllowedEmail("min@example.com", false, allowed)).toBe(false);
   });
+
+  test("defaults to the registered admin email", () => {
+    const allowed = parseAllowedEmails(undefined);
+    expect(isAllowedEmail("min4639@gmail.com", true, allowed)).toBe(true);
+  });
 });

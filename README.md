@@ -49,7 +49,7 @@ Vercel 환경변수와 `.env.local`에 아래를 넣습니다.
 - `AUTH_SECRET`: 임의의 긴 비밀값
 - `AUTH_GOOGLE_ID`: Google OAuth 클라이언트 ID
 - `AUTH_GOOGLE_SECRET`: Google OAuth 클라이언트 비밀값
-- `ALLOWED_EMAILS`: 허용할 이메일. 여러 개는 쉼표로 구분
+- `ALLOWED_EMAILS`: 허용할 이메일. 여러 개는 쉼표로 구분. 비어 있으면 `min4639@gmail.com`만 허용합니다.
 
 Google Cloud Console의 승인된 리디렉션 URI에는 아래를 등록합니다.
 
