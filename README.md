@@ -24,15 +24,23 @@
 ## 안전 원칙
 
 - 원본 파일을 수정하거나 덮어쓰지 않습니다.
-- 업로드 파일은 브라우저 메모리에서만 처리하고 서버로 보내지 않습니다.
+- 변환은 브라우저에서 하고, 검증을 통과해 다운로드할 때만 작업 로그와 변환된 행이 슈파베이스에 저장됩니다.
 - 결과는 새 파일로만 다운로드합니다.
 - 실제 Excel 주문 파일은 `.gitignore`로 GitHub 업로드가 차단됩니다.
 - 지금은 로그인 없이 바로 변환 화면이 열립니다.
+- 이름·전화·주소가 저장됩니다. 매출 장부(`sales_lines`)와는 다른 테이블을 씁니다.
 
 ## 로컬 실행
 
 1. Node.js 20 이상을 설치합니다.
-2. 아래를 실행합니다.
+2. `.env.example`을 복사해 `.env.local`을 만들고, 매출 대시보드와 같은 슈파베이스 URL·키를 넣습니다.
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-publishable-or-anon-key
+```
+
+3. 아래를 실행합니다.
 
 ```powershell
 npm install
@@ -56,14 +64,19 @@ npm run build
 - Repository: `chowooori/courier-excel-converter`
 - Branch: `main`
 - Framework: Next.js
-- 환경변수: 없음
+- 환경변수:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-Vercel 프로젝트에 GitHub `main` 브랜치를 연결하면 바로 배포됩니다.
+Vercel 프로젝트에도 위 두 값을 넣어야 배포본이 저장됩니다. 값은 매출 대시보드 슈파베이스와 같습니다.
+
+다운로드하면 `conversion_jobs`(작업 로그)와 `conversion_rows`(변환 행)에 쌓입니다.
 
 ## 기술
 
 - Next.js
 - TypeScript
 - SheetJS (`xlsx`)
+- Supabase (`conversion_jobs`, `conversion_rows`)
 
 화면은 Airbnb-inspired 밝은 테마와 Plus Jakarta Sans 글꼴을 사용합니다.

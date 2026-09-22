@@ -15,6 +15,10 @@ import {
   tableToXlsxBlob,
   type TableData,
 } from "@/lib/excel/workbook";
+import {
+  saveConversionJob,
+  tableToConversionRows,
+} from "@/lib/supabase/saveConversion";
 import { Badge, DataTable, Metric, qtyDisplay, timestampedName } from "./DataTable";
 import { FileDrop } from "./FileDrop";
 
@@ -24,6 +28,8 @@ export function CourierStep() {
   const [converted, setConverted] = useState<TableData | null>(null);
   const [report, setReport] = useState<ValidationReport | null>(null);
   const [error, setError] = useState("");
+  const [saveNote, setSaveNote] = useState("");
+  const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<"source" | "converted" | "compare">("source");
 
   async function handleFile(next: File) {
@@ -35,10 +41,12 @@ export function CourierStep() {
       setConverted(convertedTable);
       setReport(validate(table, convertedTable));
       setError("");
+      setSaveNote("");
     } catch (caught) {
       setSource(null);
       setConverted(null);
       setReport(null);
+      setSaveNote("");
       setError(
         caught instanceof ExcelFormatError
           ? caught.message
@@ -65,6 +73,46 @@ export function CourierStep() {
   }
   if (report?.invalidZipcodeCount) {
     ruleIssues.push(`우편번호 5자리 형식 오류 ${report.invalidZipcodeCount}건`);
+  }
+
+  async function handleDownload() {
+    if (!converted || !report?.ok || saving) return;
+    const filename = timestampedName("택배양식");
+    setSaving(true);
+    setSaveNote("");
+    try {
+      const saved = await saveConversionJob({
+        step: "courier",
+        sourceFile: file?.name,
+        resultFile: filename,
+        rowCount: converted.rows.length,
+        qtySum: String(report.convertedQtySum),
+        status: "ok",
+        message: `택배 양식 ${converted.rows.length}건 저장`,
+        rows: tableToConversionRows(converted),
+      });
+      downloadBlob(
+        tableToXlsxBlob(converted, "Sheet1", COURIER_TEXT_COLUMNS),
+        filename,
+      );
+      setSaveNote(
+        saved.ok
+          ? "엑셀을 받았고 슈파베이스에도 저장했습니다."
+          : `엑셀은 받았지만 저장은 실패했습니다: ${saved.error}`,
+      );
+    } catch (caught) {
+      downloadBlob(
+        tableToXlsxBlob(converted, "Sheet1", COURIER_TEXT_COLUMNS),
+        filename,
+      );
+      setSaveNote(
+        `엑셀은 받았지만 저장은 실패했습니다: ${
+          caught instanceof Error ? caught.message : "알 수 없는 오류"
+        }`,
+      );
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -153,12 +201,8 @@ export function CourierStep() {
               table={converted}
               actionLabel="택배 양식 엑셀 다운로드"
               actionDisabled={!report.ok}
-              onAction={() =>
-                downloadBlob(
-                  tableToXlsxBlob(converted, "Sheet1", COURIER_TEXT_COLUMNS),
-                  timestampedName("택배양식"),
-                )
-              }
+              actionBusy={saving}
+              onAction={handleDownload}
             />
           ) : null}
           {tab === "compare" ? (
@@ -178,6 +222,11 @@ export function CourierStep() {
                 />
               </div>
             </div>
+          ) : null}
+          {saveNote ? (
+            <p className={`alert ${saveNote.includes("실패") ? "error" : "success"}`}>
+              {saveNote}
+            </p>
           ) : null}
           {!report.ok ? (
             <p className="alert error">

@@ -13,6 +13,10 @@ import {
   tableToXlsxBlob,
   type TableData,
 } from "@/lib/excel/workbook";
+import {
+  saveConversionJob,
+  tableToConversionRows,
+} from "@/lib/supabase/saveConversion";
 import { Badge, DataTable, Metric, timestampedName } from "./DataTable";
 import { FileDrop } from "./FileDrop";
 
@@ -25,6 +29,8 @@ export function TrackingStep() {
   const [comparison, setComparison] = useState<TableData | null>(null);
   const [report, setReport] = useState<TrackingMatchReport | null>(null);
   const [error, setError] = useState("");
+  const [saveNote, setSaveNote] = useState("");
+  const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<"match" | "shipment" | "sales" | "result">(
     "match",
   );
@@ -39,6 +45,7 @@ export function TrackingStep() {
       setComparison(null);
       setReport(null);
       setError("");
+      setSaveNote("");
       return;
     }
 
@@ -54,17 +61,70 @@ export function TrackingStep() {
       setComparison(matched.comparison);
       setReport(matched.report);
       setError("");
+      setSaveNote("");
     } catch (caught) {
       setShipment(null);
       setSales(null);
       setResult(null);
       setComparison(null);
       setReport(null);
+      setSaveNote("");
       setError(
         caught instanceof ExcelFormatError
           ? caught.message
           : "엑셀 파일을 읽지 못했습니다.",
       );
+    }
+  }
+
+  async function handleDownload() {
+    if (!result || !report?.ok || saving) return;
+    const filename = timestampedName("EMP_매출장부_운송장완료");
+    setSaving(true);
+    setSaveNote("");
+    try {
+      const saved = await saveConversionJob({
+        step: "tracking",
+        sourceFile: shipmentFile?.name,
+        extraFile: salesFile?.name,
+        resultFile: filename,
+        rowCount: result.rows.length,
+        matchedCount: report.matchedRowCount,
+        status: "ok",
+        message: `운송장 연결 ${report.matchedRowCount}건 저장`,
+        rows: tableToConversionRows(result),
+      });
+      downloadBlob(
+        tableToXlsxBlob(
+          result,
+          "매출장부",
+          salesLedgerTextColumns(result.headers),
+          { freezeHeader: true, autoFilter: true },
+        ),
+        filename,
+      );
+      setSaveNote(
+        saved.ok
+          ? "엑셀을 받았고 슈파베이스에도 저장했습니다."
+          : `엑셀은 받았지만 저장은 실패했습니다: ${saved.error}`,
+      );
+    } catch (caught) {
+      downloadBlob(
+        tableToXlsxBlob(
+          result,
+          "매출장부",
+          salesLedgerTextColumns(result.headers),
+          { freezeHeader: true, autoFilter: true },
+        ),
+        filename,
+      );
+      setSaveNote(
+        `엑셀은 받았지만 저장은 실패했습니다: ${
+          caught instanceof Error ? caught.message : "알 수 없는 오류"
+        }`,
+      );
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -178,18 +238,14 @@ export function TrackingStep() {
               table={result}
               actionLabel="운송장번호가 입력된 매출장부 다운로드"
               actionDisabled={!report.ok}
-              onAction={() =>
-                downloadBlob(
-                  tableToXlsxBlob(
-                    result,
-                    "매출장부",
-                    salesLedgerTextColumns(result.headers),
-                    { freezeHeader: true, autoFilter: true },
-                  ),
-                  timestampedName("EMP_매출장부_운송장완료"),
-                )
-              }
+              actionBusy={saving}
+              onAction={handleDownload}
             />
+          ) : null}
+          {saveNote ? (
+            <p className={`alert ${saveNote.includes("실패") ? "error" : "success"}`}>
+              {saveNote}
+            </p>
           ) : null}
           {!report.ok ? (
             <p className="alert error">

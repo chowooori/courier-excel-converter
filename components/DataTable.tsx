@@ -26,12 +26,14 @@ export function DataTable({
   actionLabel,
   onAction,
   actionDisabled,
+  actionBusy,
 }: {
   table: TableData;
   columns?: string[];
   actionLabel?: string;
-  onAction?: () => void;
+  onAction?: () => void | Promise<void>;
   actionDisabled?: boolean;
+  actionBusy?: boolean;
 }) {
   const headers = columns ?? table.headers;
   const indexes = headers.map((header) => table.headers.indexOf(header));
@@ -135,10 +137,12 @@ export function DataTable({
           <button
             className="primary-button"
             type="button"
-            onClick={onAction}
-            disabled={actionDisabled}
+            onClick={() => {
+              void onAction();
+            }}
+            disabled={actionDisabled || actionBusy}
           >
-            + {actionLabel}
+            {actionBusy ? "저장 중..." : `+ ${actionLabel}`}
           </button>
         ) : null}
       </div>
