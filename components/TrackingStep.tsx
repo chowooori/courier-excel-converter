@@ -13,10 +13,7 @@ import {
   tableToXlsxBlob,
   type TableData,
 } from "@/lib/excel/workbook";
-import {
-  saveConversionJob,
-  tableToConversionRows,
-} from "@/lib/supabase/saveConversion";
+import { saveConversionJob } from "@/lib/supabase/saveConversion";
 import { Badge, DataTable, Metric, timestampedName } from "./DataTable";
 import { FileDrop } from "./FileDrop";
 
@@ -91,8 +88,7 @@ export function TrackingStep() {
         rowCount: result.rows.length,
         matchedCount: report.matchedRowCount,
         status: "ok",
-        message: `운송장 연결 ${report.matchedRowCount}건 저장`,
-        rows: tableToConversionRows(result),
+        message: `운송장 연결 ${report.matchedRowCount}건`,
       });
       downloadBlob(
         tableToXlsxBlob(
@@ -105,8 +101,8 @@ export function TrackingStep() {
       );
       setSaveNote(
         saved.ok
-          ? "엑셀을 받았고 슈파베이스에도 저장했습니다."
-          : `엑셀은 받았지만 저장은 실패했습니다: ${saved.error}`,
+          ? "엑셀을 받았고, 슈파베이스에는 건수 로그만 남겼습니다."
+          : `엑셀은 받았지만 로그 저장은 실패했습니다: ${saved.error}`,
       );
     } catch (caught) {
       downloadBlob(

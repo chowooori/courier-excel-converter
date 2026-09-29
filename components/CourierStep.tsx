@@ -15,10 +15,7 @@ import {
   tableToXlsxBlob,
   type TableData,
 } from "@/lib/excel/workbook";
-import {
-  saveConversionJob,
-  tableToConversionRows,
-} from "@/lib/supabase/saveConversion";
+import { saveConversionJob } from "@/lib/supabase/saveConversion";
 import { Badge, DataTable, Metric, qtyDisplay, timestampedName } from "./DataTable";
 import { FileDrop } from "./FileDrop";
 
@@ -88,8 +85,7 @@ export function CourierStep() {
         rowCount: converted.rows.length,
         qtySum: String(report.convertedQtySum),
         status: "ok",
-        message: `택배 양식 ${converted.rows.length}건 저장`,
-        rows: tableToConversionRows(converted),
+        message: `택배 양식 ${converted.rows.length}건`,
       });
       downloadBlob(
         tableToXlsxBlob(converted, "Sheet1", COURIER_TEXT_COLUMNS),
@@ -97,8 +93,8 @@ export function CourierStep() {
       );
       setSaveNote(
         saved.ok
-          ? "엑셀을 받았고 슈파베이스에도 저장했습니다."
-          : `엑셀은 받았지만 저장은 실패했습니다: ${saved.error}`,
+          ? "엑셀을 받았고, 슈파베이스에는 건수 로그만 남겼습니다."
+          : `엑셀은 받았지만 로그 저장은 실패했습니다: ${saved.error}`,
       );
     } catch (caught) {
       downloadBlob(

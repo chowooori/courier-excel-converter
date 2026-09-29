@@ -24,11 +24,11 @@
 ## 안전 원칙
 
 - 원본 파일을 수정하거나 덮어쓰지 않습니다.
-- 변환은 브라우저에서 하고, 검증을 통과해 다운로드할 때만 작업 로그와 변환된 행이 슈파베이스에 저장됩니다.
-- 결과는 새 파일로만 다운로드합니다.
+- 변환은 브라우저에서 하고, 결과는 새 파일로만 다운로드합니다.
+- 검증을 통과해 다운로드할 때만 슈파베이스 `conversion_jobs`에 작업 로그(단계, 파일명, 건수, 수량 합계)가 남습니다.
+- 이름·전화·주소 같은 개인정보는 다운로드 엑셀에만 있고 슈파베이스에는 올리지 않습니다.
 - 실제 Excel 주문 파일은 `.gitignore`로 GitHub 업로드가 차단됩니다.
 - 지금은 로그인 없이 바로 변환 화면이 열립니다.
-- 이름·전화·주소가 저장됩니다. 매출 장부(`sales_lines`)와는 다른 테이블을 씁니다.
 
 ## 로컬 실행
 
@@ -67,16 +67,17 @@ npm run build
 - 환경변수:
   - `NEXT_PUBLIC_SUPABASE_URL`
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `SUPABASE_SECRET_KEY` (서버 로그 저장용, 브라우저로 나가지 않음)
 
-Vercel 프로젝트에도 위 두 값을 넣어야 배포본이 저장됩니다. 값은 매출 대시보드 슈파베이스와 같습니다.
+Vercel 프로젝트에도 위 값을 넣어야 배포본이 로그를 남깁니다. URL은 매출 대시보드 슈파베이스와 같습니다.
 
-다운로드하면 `conversion_jobs`(작업 로그)와 `conversion_rows`(변환 행)에 쌓입니다.
+다운로드하면 `conversion_jobs`에 작업 로그만 쌓입니다. 변환 행은 저장하지 않습니다.
 
 ## 기술
 
 - Next.js
 - TypeScript
 - SheetJS (`xlsx`)
-- Supabase (`conversion_jobs`, `conversion_rows`)
+- Supabase (`conversion_jobs` 작업 로그)
 
 화면은 Airbnb-inspired 밝은 테마와 Plus Jakarta Sans 글꼴을 사용합니다.
