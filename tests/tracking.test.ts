@@ -66,6 +66,26 @@ describe("tracking matcher", () => {
     expect(comparison.rows[0][2]).toBe("운송장 충돌");
   });
 
+  test("matches one-character names after removing the courier dot", () => {
+    const shipment = table(
+      ["받는분", "운송장번호"],
+      [
+        ["집.", "1000-0001"],
+        ["1.홍길동", "1000-0002"],
+      ],
+    );
+    const sales = table(["수령자명"], [["집"], ["집"], ["1.홍길동"]]);
+    const { result, report } = matchTrackingNumbers(shipment, sales);
+
+    expect(report.ok).toBe(true);
+    expect(report.dotRemovedNameCount).toBe(1);
+    expect(result.rows.map((row) => [row[0], row[1]])).toEqual([
+      ["집", "1000-0001"],
+      ["집", "1000-0001"],
+      ["1.홍길동", "1000-0002"],
+    ]);
+  });
+
   test("blocks unmatched recipients", () => {
     const shipment = table(["받는분", "운송장번호"], [["홍길동", "1111"]]);
     const sales = table(["수령자명"], [["홍길동"], ["없는사람"]]);

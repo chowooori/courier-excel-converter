@@ -83,6 +83,12 @@ export function formatRecipientName(value: unknown): string {
   return text.length === 1 ? `${text}.` : text;
 }
 
+/** formatRecipientName이 붙인 점을 뗀다. "가." → "가", "1.홍길동"은 그대로. */
+export function restoreRecipientName(value: unknown): string {
+  const text = asText(value);
+  return text.length === 2 && text.endsWith(".") ? text[0] : text;
+}
+
 export function formatZipcode(value: unknown): string {
   const text = asText(value);
   if (!text) return "";
