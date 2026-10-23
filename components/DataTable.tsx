@@ -9,7 +9,7 @@ const NAME_COLUMNS = ["수령자명", "받는분성명", "받는분", "이름"];
 
 function statusTone(value: string): "paid" | "due" | "inactive" | "open" {
   if (["매칭 완료", "OK"].some((token) => value.includes(token))) return "paid";
-  if (["미매칭", "Mismatch", "충돌", "오류"].some((token) => value.includes(token))) {
+  if (["미매칭", "불일치", "Mismatch", "충돌", "오류"].some((token) => value.includes(token))) {
     return "due";
   }
   if (["없음"].some((token) => value.includes(token))) return "inactive";

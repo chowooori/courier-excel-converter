@@ -9,7 +9,9 @@ import { asText } from "./courier";
 
 export const SHIPMENT_NAME_COLUMN = "받는분";
 export const SHIPMENT_TRACKING_COLUMN = "운송장번호";
+export const SHIPMENT_ADDRESS_COLUMN = "받는분주소";
 export const SALES_NAME_COLUMN = "수령자명";
+export const SALES_ADDRESS_COLUMN = "배송지주소";
 export const TRACKING_COLUMN = "운송장번호";
 export const TRACKING_COLUMN_POSITION = 4;
 
@@ -21,6 +23,8 @@ export interface TrackingMatchReport {
   unmatchedRowCount: number;
   unmatchedNames: string[];
   conflictNames: string[];
+  addressMismatchNames: string[];
+  addressResolvedNames: string[];
   emptyShipmentNameCount: number;
   emptyTrackingCount: number;
   emptySalesNameCount: number;
@@ -38,6 +42,18 @@ export interface TrackingMatchResult {
 
 function uniquePreserve(values: string[]): string[] {
   return [...new Set(values)];
+}
+
+interface ShipmentEntry {
+  tracking: string;
+  addressWords: string[];
+}
+
+/** 택배사 주소는 "시 구 동" 세 단어뿐이라, 그 단어가 모두 매출장부 주소에 있으면 같은 곳으로 본다. */
+function addressFits(words: string[], salesAddress: string): boolean {
+  if (!words.length) return true;
+  const compact = salesAddress.replace(/\s+/g, "");
+  return words.every((word) => compact.includes(word));
 }
 
 function dropColumn(table: TableData, name: string): TableData {
@@ -116,29 +132,55 @@ export function matchTrackingNumbers(
   );
   const salesNames = sales.rows.map((row) => asText(row[salesNameIndex]));
 
-  const grouped = new Map<string, string[]>();
+  const shipmentAddressIndex = shipment.headers.indexOf(SHIPMENT_ADDRESS_COLUMN);
+  const salesAddressIndex = sales.headers.indexOf(SALES_ADDRESS_COLUMN);
+  const useAddress = shipmentAddressIndex !== -1 && salesAddressIndex !== -1;
+
+  const entriesByName = new Map<string, ShipmentEntry[]>();
   shipmentNames.forEach((name, index) => {
     const tracking = shipmentTracking[index];
     if (!name || !tracking) return;
-    const existing = grouped.get(name) ?? [];
-    if (!existing.includes(tracking)) existing.push(tracking);
-    grouped.set(name, existing);
-  });
-
-  const conflictNames = [...grouped.entries()]
-    .filter(([, values]) => values.length > 1)
-    .map(([name]) => name);
-  const trackingMap = new Map<string, string>();
-  grouped.forEach((values, name) => {
-    if (values.length === 1 && !conflictNames.includes(name)) {
-      trackingMap.set(name, values[0]);
+    const entries = entriesByName.get(name) ?? [];
+    if (!entries.some((entry) => entry.tracking === tracking)) {
+      entries.push({
+        tracking,
+        addressWords: useAddress
+          ? asText(shipment.rows[index][shipmentAddressIndex])
+              .split(/\s+/)
+              .filter(Boolean)
+          : [],
+      });
     }
+    entriesByName.set(name, entries);
   });
 
-  const mappedTracking = salesNames.map((name) => trackingMap.get(name) ?? "");
+  const candidates = salesNames.map((name, index) => {
+    const entries = entriesByName.get(name) ?? [];
+    const salesAddress = useAddress ? asText(sales.rows[index][salesAddressIndex]) : "";
+    return entries
+      .filter((entry) => !useAddress || addressFits(entry.addressWords, salesAddress))
+      .map((entry) => entry.tracking);
+  });
+  const mappedTracking = candidates.map((values) =>
+    values.length === 1 ? values[0] : "",
+  );
   const matchedMask = mappedTracking.map((value) => value !== "");
-  const unmatchedNames = uniquePreserve(
-    salesNames.filter((name, index) => name !== "" && !matchedMask[index]),
+  const status = salesNames.map((name, index) => {
+    if (name === "") return "수령자명 없음";
+    if (candidates[index].length > 1) return "운송장 충돌";
+    if (matchedMask[index]) return "매칭 완료";
+    if (entriesByName.has(name)) return "주소 불일치";
+    return "미매칭";
+  });
+  const namesWithStatus = (value: string) =>
+    uniquePreserve(salesNames.filter((_, index) => status[index] === value));
+  const conflictNames = namesWithStatus("운송장 충돌");
+  const addressMismatchNames = namesWithStatus("주소 불일치");
+  const unmatchedNames = namesWithStatus("미매칭");
+  const addressResolvedNames = uniquePreserve(salesNames).filter(
+    (name) =>
+      (entriesByName.get(name)?.length ?? 0) > 1 &&
+      salesNames.every((other, index) => other !== name || matchedMask[index]),
   );
 
   const withoutTracking = dropColumn(sales, TRACKING_COLUMN);
@@ -183,13 +225,6 @@ export function matchTrackingNumbers(
     sales.rows.length === result.rows.length &&
     tablesEqual(originalFromSource, originalFromResult);
 
-  const status = salesNames.map((name, index) => {
-    if (name === "") return "수령자명 없음";
-    if (conflictNames.includes(name)) return "운송장 충돌";
-    if (!matchedMask[index]) return "미매칭";
-    return "매칭 완료";
-  });
-
   const matchedRowCount = matchedMask.filter(Boolean).length;
   const unmatchedRowCount = sales.rows.length - matchedRowCount;
   const emptyShipmentNameCount = shipmentNames.filter((value) => value === "")
@@ -200,7 +235,6 @@ export function matchTrackingNumbers(
   const ok =
     sales.rows.length === result.rows.length &&
     unmatchedRowCount === 0 &&
-    conflictNames.length === 0 &&
     emptyShipmentNameCount === 0 &&
     emptyTrackingCount === 0 &&
     emptySalesNameCount === 0 &&
@@ -225,6 +259,8 @@ export function matchTrackingNumbers(
       unmatchedRowCount,
       unmatchedNames,
       conflictNames,
+      addressMismatchNames,
+      addressResolvedNames,
       emptyShipmentNameCount,
       emptyTrackingCount,
       emptySalesNameCount,

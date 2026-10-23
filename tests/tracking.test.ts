@@ -66,6 +66,61 @@ describe("tracking matcher", () => {
     expect(comparison.rows[0][2]).toBe("운송장 충돌");
   });
 
+  test("tells same-name recipients apart by the courier's short address", () => {
+    const shipment = table(
+      ["받는분", "받는분주소", "운송장번호"],
+      [
+        ["동명이인", "경기 고양시 마두동", "1000-0001"],
+        ["동명이인", "서울 강북구 수유동", "1000-0002"],
+      ],
+    );
+    const sales = table(
+      ["수령자명", "배송지주소"],
+      [
+        ["동명이인", "서울특별시 강북구 수유동 인수봉로 1"],
+        ["동명이인", "경기도 고양시 일산동구 강송로 1 (마두동)"],
+      ],
+    );
+    const { result, report } = matchTrackingNumbers(shipment, sales);
+
+    expect(report.ok).toBe(true);
+    expect(report.addressResolvedNames).toEqual(["동명이인"]);
+    expect(result.rows.map((row) => row[2])).toEqual(["1000-0002", "1000-0001"]);
+  });
+
+  test("blocks a same-name recipient whose address is not in the courier file", () => {
+    const shipment = table(
+      ["받는분", "받는분주소", "운송장번호"],
+      [["동명이인", "경기 고양시 마두동", "1000-0001"]],
+    );
+    const sales = table(
+      ["수령자명", "배송지주소"],
+      [
+        ["동명이인", "경기도 고양시 일산동구 강송로 1 (마두동)"],
+        ["동명이인", "서울특별시 강북구 수유동 인수봉로 1"],
+      ],
+    );
+    const { comparison, report } = matchTrackingNumbers(shipment, sales);
+
+    expect(report.ok).toBe(false);
+    expect(report.addressMismatchNames).toEqual(["동명이인"]);
+    expect(report.unmatchedNames).toEqual([]);
+    expect(comparison.rows.map((row) => row[2])).toEqual(["매칭 완료", "주소 불일치"]);
+  });
+
+  test("still blocks two tracking numbers for the same name and address", () => {
+    const shipment = table(
+      ["받는분", "받는분주소", "운송장번호"],
+      [
+        ["고객A", "서울 강북구 수유동", "1000-0001"],
+        ["고객A", "서울 강북구 수유동", "1000-0002"],
+      ],
+    );
+    const sales = table(["수령자명", "배송지주소"], [["고객A", "서울 강북구 수유동 1"]]);
+
+    expect(matchTrackingNumbers(shipment, sales).report.conflictNames).toEqual(["고객A"]);
+  });
+
   test("blocks unmatched recipients", () => {
     const shipment = table(["받는분", "운송장번호"], [["홍길동", "1111"]]);
     const sales = table(["수령자명"], [["홍길동"], ["없는사람"]]);
