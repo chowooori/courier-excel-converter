@@ -24,7 +24,7 @@ export interface TrackingMatchReport {
   emptyShipmentNameCount: number;
   emptyTrackingCount: number;
   emptySalesNameCount: number;
-  dotRemovedNameCount: number;
+  dotRemovedNames: string[];
   bundledNames: string[];
   bundledRowCount: number;
   originalDataOk: boolean;
@@ -113,9 +113,9 @@ export function matchTrackingNumbers(
 
   const shipmentRawNames = shipment.rows.map((row) => asText(row[shipmentNameIndex]));
   const shipmentNames = shipmentRawNames.map(restoreRecipientName);
-  const dotRemovedNameCount = shipmentNames.filter(
-    (name, index) => name !== shipmentRawNames[index],
-  ).length;
+  const dotRemovedNames = uniquePreserve(
+    shipmentNames.filter((name, index) => name !== shipmentRawNames[index]),
+  );
   const shipmentTracking = shipment.rows.map((row) =>
     asText(row[shipmentTrackingIndex]),
   );
@@ -233,7 +233,7 @@ export function matchTrackingNumbers(
       emptyShipmentNameCount,
       emptyTrackingCount,
       emptySalesNameCount,
-      dotRemovedNameCount,
+      dotRemovedNames,
       bundledNames,
       bundledRowCount,
       originalDataOk,

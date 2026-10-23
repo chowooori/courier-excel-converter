@@ -78,7 +78,7 @@ describe("tracking matcher", () => {
     const { result, report } = matchTrackingNumbers(shipment, sales);
 
     expect(report.ok).toBe(true);
-    expect(report.dotRemovedNameCount).toBe(1);
+    expect(report.dotRemovedNames).toEqual(["집"]);
     expect(result.rows.map((row) => [row[0], row[1]])).toEqual([
       ["집", "1000-0001"],
       ["집", "1000-0001"],
