@@ -9,6 +9,10 @@ import {
   type ValidationReport,
 } from "@/lib/excel/courier";
 import {
+  reviewSplitPayments,
+  type SplitPaymentReview,
+} from "@/lib/excel/splitPayment";
+import {
   downloadBlob,
   ExcelFormatError,
   readExcelFile,
@@ -24,6 +28,7 @@ export function CourierStep() {
   const [source, setSource] = useState<TableData | null>(null);
   const [converted, setConverted] = useState<TableData | null>(null);
   const [report, setReport] = useState<ValidationReport | null>(null);
+  const [splitReview, setSplitReview] = useState<SplitPaymentReview | null>(null);
   const [error, setError] = useState("");
   const [saveNote, setSaveNote] = useState("");
   const [saving, setSaving] = useState(false);
@@ -37,12 +42,14 @@ export function CourierStep() {
       setSource(table);
       setConverted(convertedTable);
       setReport(validate(table, convertedTable));
+      setSplitReview(reviewSplitPayments(table));
       setError("");
       setSaveNote("");
     } catch (caught) {
       setSource(null);
       setConverted(null);
       setReport(null);
+      setSplitReview(null);
       setSaveNote("");
       setError(
         caught instanceof ExcelFormatError
@@ -153,6 +160,33 @@ export function CourierStep() {
             <p className="alert info">
               1글자 성명 {report.adjustedNameCount}건에 점(.)을 자동으로 추가했습니다.
             </p>
+          ) : null}
+          {splitReview?.unified.length ? (
+            <div className="alert info">
+              쿠팡 분할 결제 전화번호 통일 {splitReview.unified.length}건 — 합포장되도록
+              맨 위 행의 번호로 맞췄습니다.
+              <ul>
+                {splitReview.unified.map((item) => (
+                  <li key={item.rowNumbers.join("-")}>
+                    {item.name} ({item.rowNumbers.join("·")}행):{" "}
+                    {item.replaced.join(", ")} → {item.phone}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {splitReview?.needsReview.length ? (
+            <div className="alert info">
+              확인 필요 {splitReview.needsReview.length}건 — 같은 고객일 수 있지만
+              자동으로 맞추지 않았습니다. 원본을 확인해 주세요.
+              <ul>
+                {splitReview.needsReview.map((item) => (
+                  <li key={item.rowNumbers.join("-")}>
+                    {item.name} ({item.rowNumbers.join("·")}행): {item.reason}
+                  </li>
+                ))}
+              </ul>
+            </div>
           ) : null}
           {ruleIssues.length ? (
             <div className="alert error">

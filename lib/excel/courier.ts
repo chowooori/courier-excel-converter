@@ -4,6 +4,7 @@ import {
   type TableData,
   columnIndex,
 } from "./workbook";
+import { reviewSplitPayments } from "./splitPayment";
 
 export const REQUIRED_SOURCE_COLUMNS = [
   "수령자명",
@@ -132,14 +133,15 @@ export function convertToCourierForm(source: TableData): TableData {
   const addressIndex = columnIndex(source, "배송지주소");
   const zipIndex = columnIndex(source, "배송지우편번호");
   const messageIndex = columnIndex(source, "배송메세지");
+  const { phoneOverrides } = reviewSplitPayments(source);
 
-  const rows: ExcelValue[][] = source.rows.map((row) => {
+  const rows: ExcelValue[][] = source.rows.map((row, index) => {
     const quantity = asQuantity(row[qtyIndex]);
     return [
       formatRecipientName(row[nameIndex]),
       asText(row[productIndex]),
       quantity ?? "",
-      asText(row[phoneIndex]),
+      phoneOverrides.get(index) ?? asText(row[phoneIndex]),
       asText(row[addressIndex]),
       formatZipcode(row[zipIndex]),
       asText(row[messageIndex]),

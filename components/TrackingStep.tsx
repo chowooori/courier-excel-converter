@@ -151,7 +151,7 @@ export function TrackingStep() {
             <Metric label="매출장부 전체 행" value={report.salesRowCount} />
             <Metric label="운송장 매칭 행" value={report.matchedRowCount} />
             <Metric
-              label="합배송"
+              label="합포장"
               value={`${report.bundledNames.length}명 / ${report.bundledRowCount}행`}
             />
             <Metric label="미매칭 행" value={report.unmatchedRowCount} />
