@@ -171,6 +171,12 @@ export function TrackingStep() {
               검증 Mismatch — 아래 오류를 확인해 주세요. 다운로드할 수 없습니다.
             </p>
           )}
+          {report.dotRemovedNameCount ? (
+            <p className="alert info">
+              1글자 이름 {report.dotRemovedNameCount}건은 택배사 파일의 점(.)을 빼고
+              매칭했습니다.
+            </p>
+          ) : null}
           {report.unmatchedNames.length ? (
             <p className="alert info">
               택배사 파일에 없는 수령자: {report.unmatchedNames.join(", ")}

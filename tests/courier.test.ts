@@ -3,6 +3,7 @@ import {
   convertToCourierForm,
   formatRecipientName,
   formatZipcode,
+  restoreRecipientName,
   validate,
 } from "../lib/excel/courier";
 import type { TableData } from "../lib/excel/workbook";
@@ -20,6 +21,13 @@ describe("courier conversion", () => {
   test("adds a dot to one-character recipient names", () => {
     expect(formatRecipientName("집")).toBe("집.");
     expect(formatRecipientName("홍길동")).toBe("홍길동");
+  });
+
+  test("removes only the dot added to one-character names", () => {
+    expect(restoreRecipientName("집.")).toBe("집");
+    expect(restoreRecipientName("집")).toBe("집");
+    expect(restoreRecipientName("1.홍길동")).toBe("1.홍길동");
+    expect(restoreRecipientName("홍길동.")).toBe("홍길동.");
   });
 
   test("converts order rows and matches counts", () => {

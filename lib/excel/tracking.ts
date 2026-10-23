@@ -5,7 +5,7 @@ import {
   columnIndex,
   valueText,
 } from "./workbook";
-import { asText } from "./courier";
+import { asText, restoreRecipientName } from "./courier";
 
 export const SHIPMENT_NAME_COLUMN = "받는분";
 export const SHIPMENT_TRACKING_COLUMN = "운송장번호";
@@ -24,6 +24,7 @@ export interface TrackingMatchReport {
   emptyShipmentNameCount: number;
   emptyTrackingCount: number;
   emptySalesNameCount: number;
+  dotRemovedNameCount: number;
   bundledNames: string[];
   bundledRowCount: number;
   originalDataOk: boolean;
@@ -110,7 +111,11 @@ export function matchTrackingNumbers(
   const shipmentTrackingIndex = columnIndex(shipment, SHIPMENT_TRACKING_COLUMN);
   const salesNameIndex = columnIndex(sales, SALES_NAME_COLUMN);
 
-  const shipmentNames = shipment.rows.map((row) => asText(row[shipmentNameIndex]));
+  const shipmentRawNames = shipment.rows.map((row) => asText(row[shipmentNameIndex]));
+  const shipmentNames = shipmentRawNames.map(restoreRecipientName);
+  const dotRemovedNameCount = shipmentNames.filter(
+    (name, index) => name !== shipmentRawNames[index],
+  ).length;
   const shipmentTracking = shipment.rows.map((row) =>
     asText(row[shipmentTrackingIndex]),
   );
@@ -228,6 +233,7 @@ export function matchTrackingNumbers(
       emptyShipmentNameCount,
       emptyTrackingCount,
       emptySalesNameCount,
+      dotRemovedNameCount,
       bundledNames,
       bundledRowCount,
       originalDataOk,
