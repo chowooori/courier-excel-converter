@@ -177,6 +177,18 @@ export function TrackingStep() {
               매칭했습니다.
             </p>
           ) : null}
+          {report.addressResolvedNames.length ? (
+            <p className="alert info">
+              동명이인 {report.addressResolvedNames.length}명은 주소로 구별해 각자의
+              운송장번호를 넣었습니다: {report.addressResolvedNames.join(", ")}
+            </p>
+          ) : null}
+          {report.addressMismatchNames.length ? (
+            <p className="alert error">
+              이름은 있지만 주소가 맞는 운송장이 없습니다:{" "}
+              {report.addressMismatchNames.join(", ")}
+            </p>
+          ) : null}
           {report.unmatchedNames.length ? (
             <p className="alert info">
               택배사 파일에 없는 수령자: {report.unmatchedNames.join(", ")}
@@ -251,7 +263,7 @@ export function TrackingStep() {
           ) : null}
           {!report.ok ? (
             <p className="alert error">
-              미매칭·충돌·빈 값이 해결되기 전에는 다운로드할 수 없습니다.
+              미매칭·주소 불일치·충돌·빈 값이 해결되기 전에는 다운로드할 수 없습니다.
             </p>
           ) : null}
         </>
